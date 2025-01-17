@@ -1,0 +1,52 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# Create dummy data
+data = torch.rand(1000, 784)  # 1000 samples, each with 784 features
+labels = torch.randint(0, 10, (1000,))  # Random labels (0-9) for 1000 samples
+
+# Define a simple neural network
+class SimpleNet(nn.Module):
+    def __init__(self):
+        super(SimpleNet, self).__init__()
+        self.layer1 = nn.Linear(784, 64)  # Input to hidden layer
+        self.layer2 = nn.Linear(64, 10)  # Hidden to output layer
+
+    def forward(self, x):
+        x = torch.relu(self.layer1(x))  # Apply ReLU activation
+        return self.layer2(x)  # Output layer
+
+# Initialize model, loss function, and optimizer
+model = SimpleNet()
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# Training loop
+epochs = 5
+batch_size = 32
+for epoch in range(epochs):
+    total_loss = 0
+    for i in range(0, len(data), batch_size):
+        batch_data = data[i:i+batch_size]
+        batch_labels = labels[i:i+batch_size]
+
+        # Forward pass
+        predictions = model(batch_data)
+        loss = loss_function(predictions, batch_labels)
+
+        # Backward pass and optimization
+        optimizer.zero_grad()  # Clear previous gradients
+        loss.backward()  # Compute gradients
+        optimizer.step()  # Update weights
+
+        total_loss += loss.item()
+
+    print(f"Epoch {epoch+1}/{epochs}, Average Loss: {total_loss/len(data):.4f}")
+
+# Evaluate the model
+with torch.no_grad():
+    predictions = model(data)
+    predicted_classes = torch.argmax(predictions, dim=1)
+    accuracy = (predicted_classes == labels).float().mean()
+    print(f"Final Accuracy: {accuracy:.4f}")
